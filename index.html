@@ -8,10 +8,8 @@
     :root {
       --primary-color: #4CAF50;
       --secondary-color: #2196F3;
-      --accent-color: #FF9800;
       --weekend-color: #d32f2f;
       --today-color: #c8e6c9;
-      --past-day-opacity: 0.6;
     }
     
     * {
@@ -32,105 +30,84 @@
     
     .container {
       width: 100%;
-      max-width: 1200px;
+      max-width: 1000px;
     }
     
     h1 {
-      margin-bottom: 10px;
+      margin: 10px 0;
       color: #333;
       text-align: center;
     }
     
-    #current-time {
-      margin-bottom: 20px;
-      font-size: 1.1em;
-      color: #555;
-      font-weight: 500;
-      text-align: center;
+    .mode-indicator {
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.9em;
+      font-weight: bold;
+      margin: 10px 0;
     }
     
-    .auth-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.8);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-    
-    .auth-form {
-      background: white;
-      padding: 30px;
-      border-radius: 15px;
-      text-align: center;
-      width: 90%;
-      max-width: 400px;
-    }
-    
-    .password-input {
-      padding: 12px;
-      border: 2px solid #ddd;
-      border-radius: 8px;
-      font-size: 1em;
-      width: 100%;
-      margin: 15px 0;
-    }
-    
-    .auth-button {
-      padding: 12px 25px;
-      background: var(--primary-color);
+    .view-mode {
+      background: #2196F3;
       color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 1em;
-      width: 100%;
+    }
+    
+    .edit-mode {
+      background: #4CAF50;
+      color: white;
     }
     
     .week-nav {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 20px;
+      gap: 15px;
       margin: 20px 0;
       flex-wrap: wrap;
     }
     
     .week-nav button {
-      padding: 10px 15px;
+      padding: 8px 15px;
       border: none;
-      border-radius: 10px;
+      border-radius: 8px;
       background: white;
       cursor: pointer;
-      font-size: 1em;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      font-size: 0.9em;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      transition: all 0.2s;
+    }
+    
+    .week-nav button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
     }
     
     #week-range {
       font-weight: bold;
       color: #333;
       text-align: center;
+      min-width: 200px;
     }
     
     .calendar {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 15px;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
       margin: 20px 0;
     }
     
     .day-card {
       background: white;
-      border-radius: 15px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      border-radius: 12px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
       padding: 15px;
       text-align: center;
       transition: all 0.3s ease;
-      border-left: 4px solid transparent;
+    }
+    
+    .day-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.15);
     }
     
     .date {
@@ -142,29 +119,39 @@
     .weekday {
       color: #666;
       margin-bottom: 10px;
+      font-size: 0.9em;
     }
     
     .time-select, .time-display {
       padding: 8px;
-      border-radius: 8px;
+      border-radius: 6px;
       font-size: 0.9em;
       width: 100%;
-      margin-top: 10px;
+      margin-top: 8px;
+      transition: all 0.2s;
     }
     
     .time-select {
-      border: 1px solid #ccc;
+      border: 2px solid #4CAF50;
+      background: white;
       cursor: pointer;
+    }
+    
+    .time-select:focus {
+      outline: none;
+      box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
     }
     
     .time-display {
       background: #f5f5f5;
       font-weight: bold;
       color: #333;
+      border: 1px solid #ddd;
     }
     
     .today {
       background: var(--today-color);
+      border: 2px solid #388E3C;
     }
     
     .weekend {
@@ -172,20 +159,24 @@
     }
     
     .past-day {
-      opacity: var(--past-day-opacity);
+      opacity: 0.7;
     }
     
     .weekend-label {
       color: var(--weekend-color);
       font-weight: bold;
-      margin-top: 10px;
+      margin-top: 8px;
+      font-size: 0.9em;
+      padding: 5px;
+      background: rgba(255,255,255,0.7);
+      border-radius: 5px;
     }
     
     .work-stats {
       background: white;
-      border-radius: 15px;
+      border-radius: 12px;
       padding: 20px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
       margin: 20px 0;
     }
     
@@ -199,61 +190,89 @@
     .stat-card {
       background: #f8f9fa;
       padding: 15px;
-      border-radius: 10px;
+      border-radius: 8px;
       text-align: center;
+      border-left: 4px solid #2196F3;
     }
     
     .stat-value {
-      font-size: 1.5em;
+      font-size: 1.4em;
       font-weight: bold;
+      margin-bottom: 5px;
     }
     
     .share-section {
       background: white;
-      border-radius: 15px;
+      border-radius: 12px;
       padding: 20px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
       text-align: center;
+      margin: 20px 0;
+    }
+    
+    .share-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 15px 0;
     }
     
     .share-button {
       padding: 10px 20px;
-      margin: 5px;
       border: none;
       border-radius: 8px;
       cursor: pointer;
       font-size: 0.9em;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
     }
     
-    .admin-badge {
+    .share-view {
+      background: var(--secondary-color);
+      color: white;
+    }
+    
+    .share-edit {
       background: var(--primary-color);
       color: white;
-      padding: 5px 15px;
-      border-radius: 20px;
-      font-size: 0.8em;
-      margin-bottom: 10px;
+    }
+    
+    .share-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    .url-display {
+      background: #f9f9f9;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+      margin: 10px 0;
+      font-size: 0.9em;
+      word-break: break-all;
+    }
+    
+    .edit-notice {
+      background: #FFF3E0;
+      border: 1px solid #FFB74D;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 15px 0;
+      text-align: center;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <!-- Аутентификация -->
-    <div class="auth-overlay" id="authOverlay">
-      <div class="auth-form">
-        <h2>Доступ к графику</h2>
-        <p>Введите пароль для редактирования или закройте для просмотра</p>
-        <input type="password" class="password-input" id="passwordInput" 
-               placeholder="Пароль редактора" autocomplete="off">
-        <button class="auth-button" onclick="checkPassword()">Войти как редактор</button>
-        <p style="margin-top: 15px; color: #666; font-size: 0.9em;">
-          Чтобы просто посмотреть график, закройте это окно
-        </p>
+    <div id="mainContent">
+      <!-- Индикатор режима -->
+      <div class="mode-indicator view-mode" id="modeIndicator">
+        👁️ Режим просмотра
       </div>
-    </div>
-
-    <!-- Основной контент -->
-    <div id="mainContent" style="display: none;">
-      <div class="admin-badge" id="adminBadge" style="display: none;">🔧 Редактор</div>
+      
       <h1>📅 Мой рабочий график</h1>
       <div id="current-time"></div>
       
@@ -263,102 +282,121 @@
         <button id="next-week">Следующая →</button>
       </div>
       
+      <!-- Уведомление для редактора -->
+      <div class="edit-notice" id="editNotice" style="display: none;">
+        <strong>🔧 Вы в режиме редактирования!</strong>
+        <p style="margin: 5px 0 0 0; font-size: 0.9em;">
+          Изменения сохраняются автоматически
+        </p>
+      </div>
+      
       <div class="calendar" id="calendar"></div>
       
       <div class="work-stats">
-        <h2>📊 Статистика недели</h2>
+        <h3>📊 Статистика недели</h3>
         <div class="stats-grid">
           <div class="stat-card">
             <div class="stat-value" id="work-days">0</div>
-            <div class="stat-label">Рабочих дней</div>
+            <div>Рабочих дней</div>
           </div>
           <div class="stat-card">
             <div class="stat-value" id="weekend-days">0</div>
-            <div class="stat-label">Выходных дней</div>
+            <div>Выходных дней</div>
           </div>
         </div>
-        <div class="next-workday">
-          <h3>🕐 Ближайший рабочий день</h3>
-          <div class="stat-value" id="next-workday-info">-</div>
+        <div style="margin-top: 15px; padding: 12px; background: #e8f5e9; border-radius: 8px;">
+          <strong>🕐 Ближайший рабочий день:</strong>
+          <div id="next-workday-info" style="font-weight: bold; margin-top: 5px;">-</div>
         </div>
       </div>
 
       <div class="share-section">
         <h3>🔗 Поделиться графиком</h3>
-        <p>Отправьте эту ссылку другим людям:</p>
-        <div style="margin: 15px 0;">
-          <input type="text" id="shareUrl" readonly 
-                 style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; background: #f9f9f9;">
+        
+        <div style="margin: 20px 0;">
+          <h4 style="margin-bottom: 10px; color: #2196F3;">👁️ Для просмотра:</h4>
+          <div class="url-display" id="viewUrl"></div>
+          <p style="font-size: 0.9em; color: #666; margin: 5px 0;">
+            Отправьте эту ссылку для просмотра графика
+          </p>
         </div>
-        <button class="share-button" onclick="copyShareUrl()" 
-                style="background: #4CAF50; color: white;">
-          📋 Скопировать ссылку
-        </button>
+        
+        <div style="margin: 20px 0;">
+          <h4 style="margin-bottom: 10px; color: #4CAF50;">🔧 Для редактирования:</h4>
+          <div class="url-display" id="editUrl"></div>
+          <p style="font-size: 0.9em; color: #666; margin: 5px 0;">
+            Сохраните эту ссылку для редактирования графика
+          </p>
+        </div>
+        
+        <div class="share-buttons">
+          <button class="share-button share-view" onclick="copyViewUrl()">
+            📋 Скопировать ссылку для просмотра
+          </button>
+          <button class="share-button share-edit" onclick="copyEditUrl()">
+            🔧 Скопировать ссылку для редактирования
+          </button>
+        </div>
+        
+        <p style="font-size: 0.8em; color: #666; margin-top: 15px;">
+          💡 <strong>Совет:</strong> Сохраните ссылку для редактирования в надежном месте!
+        </p>
       </div>
     </div>
   </div>
 
   <script>
-    // Конфигурация - ПОМЕНЯЙТЕ ПАРОЛЬ!
-    const ADMIN_PASSWORD = "мойграфик2024";
     const weekdays = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
     let currentMonday = new Date();
     let isEditMode = false;
 
-    // Элементы DOM
+    // Определяем режим по URL
+    function checkUrlMode() {
+      const urlParams = new URLSearchParams(window.location.search);
+      isEditMode = urlParams.get('mode') === 'edit';
+      
+      if (isEditMode) {
+        document.getElementById('modeIndicator').className = 'mode-indicator edit-mode';
+        document.getElementById('modeIndicator').textContent = '🔧 Режим редактирования';
+        document.getElementById('editNotice').style.display = 'block';
+      }
+    }
+
+    // Генерация URL
+    function generateViewUrl() {
+      return window.location.origin + window.location.pathname;
+    }
+    
+    function generateEditUrl() {
+      return window.location.origin + window.location.pathname + '?mode=edit';
+    }
+
+    // Показ URL
+    function displayUrls() {
+      document.getElementById('viewUrl').textContent = generateViewUrl();
+      document.getElementById('editUrl').textContent = generateEditUrl();
+    }
+
+    // Копирование URL
+    function copyViewUrl() {
+      navigator.clipboard.writeText(generateViewUrl()).then(() => {
+        alert('Ссылка для просмотра скопирована!');
+      });
+    }
+    
+    function copyEditUrl() {
+      navigator.clipboard.writeText(generateEditUrl()).then(() => {
+        alert('Ссылка для редактирования скопирована!');
+      });
+    }
+
     const elements = {
       calendar: document.getElementById("calendar"),
       weekRange: document.getElementById("week-range"),
-      authOverlay: document.getElementById("authOverlay"),
-      mainContent: document.getElementById("mainContent"),
-      adminBadge: document.getElementById("adminBadge"),
-      passwordInput: document.getElementById("passwordInput"),
-      shareUrl: document.getElementById("shareUrl")
+      prevWeek: document.getElementById("prev-week"),
+      nextWeek: document.getElementById("next-week")
     };
 
-    // Установка URL для общего доступа
-    elements.shareUrl.value = window.location.href;
-
-    // Проверка пароля
-    function checkPassword() {
-      if (elements.passwordInput.value === ADMIN_PASSWORD) {
-        isEditMode = true;
-        showMainContent();
-        elements.adminBadge.style.display = 'block';
-        localStorage.setItem('graphic_editor', 'true');
-      } else {
-        alert('Неверный пароль');
-      }
-    }
-
-    function showMainContent() {
-      elements.authOverlay.style.display = 'none';
-      elements.mainContent.style.display = 'block';
-      renderCalendar();
-    }
-
-    // Закрытие для просмотра
-    elements.authOverlay.addEventListener('click', (e) => {
-      if (e.target === elements.authOverlay) {
-        isEditMode = false;
-        showMainContent();
-      }
-    });
-
-    // Enter для пароля
-    elements.passwordInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') checkPassword();
-    });
-
-    // Копирование ссылки
-    function copyShareUrl() {
-      elements.shareUrl.select();
-      document.execCommand('copy');
-      alert('Ссылка скопирована!');
-    }
-
-    // Остальной код функций (setMonday, updateTime, renderCalendar и т.д.)
-    // ... остается таким же как в предыдущем примере ...
     function setMonday(date) {
       const monday = new Date(date);
       monday.setDate(date.getDate() - (date.getDay() + 6) % 7);
@@ -374,14 +412,14 @@
     function formatWeekRange(monday) {
       const sunday = new Date(monday);
       sunday.setDate(monday.getDate() + 6);
-      return `${monday.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" })} - ${sunday.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" })}`;
+      return `${monday.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" })} - ${sunday.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" })}`;
     }
 
     function updateCardStyle(card, time) {
-      card.classList.remove('time-morning', 'time-afternoon', 'time-evening');
-      if (time === '07:30') card.classList.add('time-morning');
-      if (time === '12:00') card.classList.add('time-afternoon');
-      if (time === '18:00') card.classList.add('time-evening');
+      card.style.borderLeft = '4px solid transparent';
+      if (time === '07:30') card.style.borderLeftColor = '#4CAF50';
+      if (time === '12:00') card.style.borderLeftColor = '#FF9800';
+      if (time === '18:00') card.style.borderLeftColor = '#9C27B0';
     }
 
     function findNextWorkday() {
@@ -396,8 +434,7 @@
           const savedTime = localStorage.getItem(storageKey) || '07:30';
           return {
             date: nextDay,
-            time: savedTime,
-            weekday: weekdays[(dayOfWeek + 6) % 7]
+            time: savedTime
           };
         }
       }
@@ -415,10 +452,11 @@
       if (nextWorkday) {
         const dateStr = nextWorkday.date.toLocaleDateString("ru-RU", { 
           day: "2-digit", 
-          month: "2-digit"
+          month: "2-digit",
+          weekday: 'short'
         });
         document.getElementById('next-workday-info').textContent = 
-          `${dateStr} (${nextWorkday.weekday}) в ${nextWorkday.time}`;
+          `${dateStr} в ${nextWorkday.time}`;
       }
     }
 
@@ -457,6 +495,7 @@
           const savedTime = localStorage.getItem(storageKey) || '07:30';
           
           if (isEditMode) {
+            // Режим редактирования - показываем select
             const select = document.createElement("select");
             select.className = "time-select";
             
@@ -476,6 +515,7 @@
 
             card.appendChild(select);
           } else {
+            // Режим просмотра - показываем текст
             const timeDisplay = document.createElement("div");
             timeDisplay.className = "time-display";
             timeDisplay.textContent = savedTime;
@@ -483,6 +523,7 @@
           }
           updateCardStyle(card, savedTime);
         } else {
+          // Выходные
           const weekendLabel = document.createElement("div");
           weekendLabel.className = "weekend-label";
           weekendLabel.textContent = "Выходной";
@@ -495,27 +536,28 @@
     }
 
     // Инициализация
-    currentMonday = setMonday(new Date());
-    
-    document.getElementById('prev-week').addEventListener('click', () => {
-      currentMonday.setDate(currentMonday.getDate() - 7);
+    function init() {
+      currentMonday = setMonday(new Date());
+      checkUrlMode();
+      displayUrls();
       renderCalendar();
-    });
-    
-    document.getElementById('next-week').addEventListener('click', () => {
-      currentMonday.setDate(currentMonday.getDate() + 7);
-      renderCalendar();
-    });
+      
+      elements.prevWeek.addEventListener('click', () => {
+        currentMonday.setDate(currentMonday.getDate() - 7);
+        renderCalendar();
+      });
+      
+      elements.nextWeek.addEventListener('click', () => {
+        currentMonday.setDate(currentMonday.getDate() + 7);
+        renderCalendar();
+      });
 
-    // Проверка сохраненной авторизации
-    if (localStorage.getItem('graphic_editor') === 'true') {
-      isEditMode = true;
-      showMainContent();
-      elements.adminBadge.style.display = 'block';
+      updateTime();
+      setInterval(updateTime, 1000);
     }
 
-    updateTime();
-    setInterval(updateTime, 1000);
+    // Запуск приложения
+    init();
   </script>
 </body>
 </html>
