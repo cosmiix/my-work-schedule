@@ -39,24 +39,6 @@
       text-align: center;
     }
     
-    .mode-indicator {
-      padding: 8px 16px;
-      border-radius: 20px;
-      font-size: 0.9em;
-      font-weight: bold;
-      margin: 10px 0;
-    }
-    
-    .view-mode {
-      background: #2196F3;
-      color: white;
-    }
-    
-    .edit-mode {
-      background: #4CAF50;
-      color: white;
-    }
-    
     .week-nav {
       display: flex;
       align-items: center;
@@ -201,60 +183,6 @@
       margin-bottom: 5px;
     }
     
-    .share-section {
-      background: white;
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-      text-align: center;
-      margin: 20px 0;
-    }
-    
-    .share-buttons {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin: 15px 0;
-    }
-    
-    .share-button {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.9em;
-      transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-    
-    .share-view {
-      background: var(--secondary-color);
-      color: white;
-    }
-    
-    .share-edit {
-      background: var(--primary-color);
-      color: white;
-    }
-    
-    .share-button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    }
-    
-    .url-display {
-      background: #f9f9f9;
-      padding: 10px;
-      border-radius: 6px;
-      border: 1px solid #ddd;
-      margin: 10px 0;
-      font-size: 0.9em;
-      word-break: break-all;
-    }
-    
     .edit-notice {
       background: #FFF3E0;
       border: 1px solid #FFB74D;
@@ -268,11 +196,6 @@
 <body>
   <div class="container">
     <div id="mainContent">
-      <!-- Индикатор режима -->
-      <div class="mode-indicator view-mode" id="modeIndicator">
-        👁️ Режим просмотра
-      </div>
-      
       <h1>📅 Мой рабочий график</h1>
       <div id="current-time"></div>
       
@@ -309,39 +232,6 @@
           <div id="next-workday-info" style="font-weight: bold; margin-top: 5px;">-</div>
         </div>
       </div>
-
-      <div class="share-section">
-        <h3>🔗 Поделиться графиком</h3>
-        
-        <div style="margin: 20px 0;">
-          <h4 style="margin-bottom: 10px; color: #2196F3;">👁️ Для просмотра:</h4>
-          <div class="url-display" id="viewUrl"></div>
-          <p style="font-size: 0.9em; color: #666; margin: 5px 0;">
-            Отправьте эту ссылку для просмотра графика
-          </p>
-        </div>
-        
-        <div style="margin: 20px 0;">
-          <h4 style="margin-bottom: 10px; color: #4CAF50;">🔧 Для редактирования:</h4>
-          <div class="url-display" id="editUrl"></div>
-          <p style="font-size: 0.9em; color: #666; margin: 5px 0;">
-            Сохраните эту ссылку для редактирования графика
-          </p>
-        </div>
-        
-        <div class="share-buttons">
-          <button class="share-button share-view" onclick="copyViewUrl()">
-            📋 Скопировать ссылку для просмотра
-          </button>
-          <button class="share-button share-edit" onclick="copyEditUrl()">
-            🔧 Скопировать ссылку для редактирования
-          </button>
-        </div>
-        
-        <p style="font-size: 0.8em; color: #666; margin-top: 15px;">
-          💡 <strong>Совет:</strong> Сохраните ссылку для редактирования в надежном месте!
-        </p>
-      </div>
     </div>
   </div>
 
@@ -356,38 +246,8 @@
       isEditMode = urlParams.get('mode') === 'edit';
       
       if (isEditMode) {
-        document.getElementById('modeIndicator').className = 'mode-indicator edit-mode';
-        document.getElementById('modeIndicator').textContent = '🔧 Режим редактирования';
         document.getElementById('editNotice').style.display = 'block';
       }
-    }
-
-    // Генерация URL
-    function generateViewUrl() {
-      return window.location.origin + window.location.pathname;
-    }
-    
-    function generateEditUrl() {
-      return window.location.origin + window.location.pathname + '?mode=edit';
-    }
-
-    // Показ URL
-    function displayUrls() {
-      document.getElementById('viewUrl').textContent = generateViewUrl();
-      document.getElementById('editUrl').textContent = generateEditUrl();
-    }
-
-    // Копирование URL
-    function copyViewUrl() {
-      navigator.clipboard.writeText(generateViewUrl()).then(() => {
-        alert('Ссылка для просмотра скопирована!');
-      });
-    }
-    
-    function copyEditUrl() {
-      navigator.clipboard.writeText(generateEditUrl()).then(() => {
-        alert('Ссылка для редактирования скопирована!');
-      });
     }
 
     const elements = {
@@ -539,7 +399,6 @@
     function init() {
       currentMonday = setMonday(new Date());
       checkUrlMode();
-      displayUrls();
       renderCalendar();
       
       elements.prevWeek.addEventListener('click', () => {
