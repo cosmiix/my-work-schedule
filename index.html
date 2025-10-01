@@ -37,19 +37,20 @@
       margin: 10px 0;
       color: #333;
       text-align: center;
+      font-size: clamp(1.5em, 4vw, 2em);
     }
     
     .week-nav {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 15px;
+      gap: 10px;
       margin: 20px 0;
       flex-wrap: wrap;
     }
     
     .week-nav button {
-      padding: 8px 15px;
+      padding: 10px 15px;
       border: none;
       border-radius: 8px;
       background: white;
@@ -57,6 +58,7 @@
       font-size: 0.9em;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
       transition: all 0.2s;
+      min-width: 100px;
     }
     
     .week-nav button:hover {
@@ -69,22 +71,29 @@
       color: #333;
       text-align: center;
       min-width: 200px;
+      font-size: clamp(0.9em, 3vw, 1.1em);
+      padding: 0 10px;
     }
     
     .calendar {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
       margin: 20px 0;
+      width: 100%;
     }
     
     .day-card {
       background: white;
       border-radius: 12px;
       box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-      padding: 15px;
+      padding: 15px 10px;
       text-align: center;
       transition: all 0.3s ease;
+      min-height: 140px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
     
     .day-card:hover {
@@ -105,9 +114,9 @@
     }
     
     .time-select, .time-display {
-      padding: 8px;
+      padding: 8px 5px;
       border-radius: 6px;
-      font-size: 0.9em;
+      font-size: 0.85em;
       width: 100%;
       margin-top: 8px;
       transition: all 0.2s;
@@ -160,6 +169,7 @@
       padding: 20px;
       box-shadow: 0 3px 10px rgba(0,0,0,0.1);
       margin: 20px 0;
+      width: 100%;
     }
     
     .stats-grid {
@@ -190,6 +200,60 @@
       padding: 15px;
       margin: 15px 0;
       text-align: center;
+      width: 100%;
+    }
+
+    #current-time {
+      font-size: clamp(0.9em, 3vw, 1.1em);
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    /* Мобильная адаптация */
+    @media (max-width: 480px) {
+      body {
+        padding: 10px;
+      }
+      
+      .calendar {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+      }
+      
+      .day-card {
+        padding: 12px 8px;
+        min-height: 130px;
+      }
+      
+      .week-nav {
+        gap: 5px;
+      }
+      
+      .week-nav button {
+        padding: 8px 12px;
+        min-width: 80px;
+        font-size: 0.8em;
+      }
+      
+      #week-range {
+        min-width: 150px;
+        font-size: 0.9em;
+      }
+      
+      .work-stats {
+        padding: 15px;
+      }
+      
+      .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+    }
+
+    @media (max-width: 320px) {
+      .calendar {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -236,17 +300,52 @@
   </div>
 
   <script>
+    // Улучшенная версия для мобильных устройств
     const weekdays = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
     let currentMonday = new Date();
     let isEditMode = false;
 
+    // Безопасное получение даты
+    function getSafeDate(date) {
+      try {
+        return new Date(date);
+      } catch (e) {
+        console.error('Ошибка создания даты:', e);
+        return new Date();
+      }
+    }
+
+    // Безопасная работа с localStorage
+    function safeLocalStorageGet(key) {
+      try {
+        return localStorage.getItem(key);
+      } catch (e) {
+        console.error('Ошибка localStorage:', e);
+        return null;
+      }
+    }
+
+    function safeLocalStorageSet(key, value) {
+      try {
+        localStorage.setItem(key, value);
+        return true;
+      } catch (e) {
+        console.error('Ошибка localStorage:', e);
+        return false;
+      }
+    }
+
     // Определяем режим по URL
     function checkUrlMode() {
-      const urlParams = new URLSearchParams(window.location.search);
-      isEditMode = urlParams.get('mode') === 'edit';
-      
-      if (isEditMode) {
-        document.getElementById('editNotice').style.display = 'block';
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        isEditMode = urlParams.get('mode') === 'edit';
+        
+        if (isEditMode) {
+          document.getElementById('editNotice').style.display = 'block';
+        }
+      } catch (e) {
+        console.error('Ошибка определения режима:', e);
       }
     }
 
@@ -258,165 +357,217 @@
     };
 
     function setMonday(date) {
-      const monday = new Date(date);
-      monday.setDate(date.getDate() - (date.getDay() + 6) % 7);
+      const safeDate = getSafeDate(date);
+      const monday = new Date(safeDate);
+      const day = safeDate.getDay();
+      const diff = safeDate.getDate() - day + (day === 0 ? -6 : 1); // Корректный расчет понедельника
+      monday.setDate(diff);
       return monday;
     }
 
     function updateTime() {
-      const now = new Date();
-      document.getElementById("current-time").textContent = 
-        `Текущее время: ${now.toLocaleTimeString('ru-RU')}`;
+      try {
+        const now = new Date();
+        document.getElementById("current-time").textContent = 
+          `Текущее время: ${now.toLocaleTimeString('ru-RU')}`;
+      } catch (e) {
+        console.error('Ошибка обновления времени:', e);
+      }
     }
 
     function formatWeekRange(monday) {
-      const sunday = new Date(monday);
-      sunday.setDate(monday.getDate() + 6);
-      return `${monday.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" })} - ${sunday.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" })}`;
+      try {
+        const sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+        return `${monday.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" })} - ${sunday.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" })}`;
+      } catch (e) {
+        console.error('Ошибка форматирования даты:', e);
+        return 'Ошибка даты';
+      }
     }
 
     function updateCardStyle(card, time) {
       card.style.borderLeft = '4px solid transparent';
       if (time === '07:30') card.style.borderLeftColor = '#4CAF50';
-      if (time === '12:00') card.style.borderLeftColor = '#FF9800';
-      if (time === '18:00') card.style.borderLeftColor = '#9C27B0';
+      else if (time === '12:00') card.style.borderLeftColor = '#FF9800';
+      else if (time === '18:00') card.style.borderLeftColor = '#9C27B0';
     }
 
     function findNextWorkday() {
-      const today = new Date();
-      let nextDay = new Date(today);
-      
-      for (let i = 1; i <= 7; i++) {
-        nextDay.setDate(today.getDate() + i);
-        const dayOfWeek = nextDay.getDay();
-        if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-          const storageKey = `time_${nextDay.toISOString().split('T')[0]}`;
-          const savedTime = localStorage.getItem(storageKey) || '07:30';
-          return {
-            date: nextDay,
-            time: savedTime
-          };
+      try {
+        const today = new Date();
+        let nextDay = new Date(today);
+        
+        for (let i = 1; i <= 7; i++) {
+          nextDay.setDate(today.getDate() + i);
+          const dayOfWeek = nextDay.getDay();
+          if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+            const storageKey = `time_${nextDay.toISOString().split('T')[0]}`;
+            const savedTime = safeLocalStorageGet(storageKey) || '07:30';
+            return {
+              date: nextDay,
+              time: savedTime
+            };
+          }
         }
+        return null;
+      } catch (e) {
+        console.error('Ошибка поиска рабочего дня:', e);
+        return null;
       }
-      return null;
     }
 
     function updateStats() {
-      const workDays = document.querySelectorAll('.day-card:not(.weekend)').length;
-      const weekendDays = document.querySelectorAll('.day-card.weekend').length;
-      
-      document.getElementById('work-days').textContent = workDays;
-      document.getElementById('weekend-days').textContent = weekendDays;
-      
-      const nextWorkday = findNextWorkday();
-      if (nextWorkday) {
-        const dateStr = nextWorkday.date.toLocaleDateString("ru-RU", { 
-          day: "2-digit", 
-          month: "2-digit",
-          weekday: 'short'
-        });
-        document.getElementById('next-workday-info').textContent = 
-          `${dateStr} в ${nextWorkday.time}`;
+      try {
+        const workDays = document.querySelectorAll('.day-card:not(.weekend)').length;
+        const weekendDays = document.querySelectorAll('.day-card.weekend').length;
+        
+        document.getElementById('work-days').textContent = workDays;
+        document.getElementById('weekend-days').textContent = weekendDays;
+        
+        const nextWorkday = findNextWorkday();
+        if (nextWorkday) {
+          const dateStr = nextWorkday.date.toLocaleDateString("ru-RU", { 
+            day: "2-digit", 
+            month: "2-digit",
+            weekday: 'short'
+          });
+          document.getElementById('next-workday-info').textContent = 
+            `${dateStr} в ${nextWorkday.time}`;
+        } else {
+          document.getElementById('next-workday-info').textContent = 'Не найдено';
+        }
+      } catch (e) {
+        console.error('Ошибка обновления статистики:', e);
       }
     }
 
     function renderCalendar() {
-      elements.calendar.innerHTML = '';
-      const today = new Date();
-      elements.weekRange.textContent = formatWeekRange(currentMonday);
+      try {
+        elements.calendar.innerHTML = '';
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Нормализуем дату
+        
+        elements.weekRange.textContent = formatWeekRange(currentMonday);
 
-      for (let i = 0; i < 7; i++) {
-        const day = new Date(currentMonday);
-        day.setDate(currentMonday.getDate() + i);
+        for (let i = 0; i < 7; i++) {
+          const day = new Date(currentMonday);
+          day.setDate(currentMonday.getDate() + i);
+          day.setHours(0, 0, 0, 0); // Нормализуем дату
 
-        const card = document.createElement("div");
-        card.className = "day-card";
+          const card = document.createElement("div");
+          card.className = "day-card";
 
-        const isWeekend = i >= 5;
-        if (isWeekend) card.classList.add("weekend");
-        if (day.toDateString() === today.toDateString()) card.classList.add("today");
-        if (day < today && day.toDateString() !== today.toDateString()) {
-          card.classList.add("past-day");
-        }
-
-        const dateEl = document.createElement("div");
-        dateEl.className = "date";
-        dateEl.textContent = day.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" });
-
-        const weekdayEl = document.createElement("div");
-        weekdayEl.className = "weekday";
-        weekdayEl.textContent = weekdays[i];
-
-        card.appendChild(dateEl);
-        card.appendChild(weekdayEl);
-
-        if (!isWeekend) {
-          const storageKey = `time_${day.toISOString().split('T')[0]}`;
-          const savedTime = localStorage.getItem(storageKey) || '07:30';
+          const isWeekend = i >= 5;
+          if (isWeekend) card.classList.add("weekend");
           
-          if (isEditMode) {
-            // Режим редактирования - показываем select
-            const select = document.createElement("select");
-            select.className = "time-select";
-            
-            ["07:30", "12:00", "18:00"].forEach(time => {
-              const option = document.createElement("option");
-              option.value = time;
-              option.textContent = time;
-              if (time === savedTime) option.selected = true;
-              select.appendChild(option);
-            });
-
-            select.addEventListener('change', () => {
-              localStorage.setItem(storageKey, select.value);
-              updateCardStyle(card, select.value);
-              updateStats();
-            });
-
-            card.appendChild(select);
-          } else {
-            // Режим просмотра - показываем текст
-            const timeDisplay = document.createElement("div");
-            timeDisplay.className = "time-display";
-            timeDisplay.textContent = savedTime;
-            card.appendChild(timeDisplay);
+          // Сравниваем нормализованные даты
+          const todayNormalized = new Date(today);
+          todayNormalized.setHours(0, 0, 0, 0);
+          const dayNormalized = new Date(day);
+          dayNormalized.setHours(0, 0, 0, 0);
+          
+          if (dayNormalized.getTime() === todayNormalized.getTime()) {
+            card.classList.add("today");
           }
-          updateCardStyle(card, savedTime);
-        } else {
-          // Выходные
-          const weekendLabel = document.createElement("div");
-          weekendLabel.className = "weekend-label";
-          weekendLabel.textContent = "Выходной";
-          card.appendChild(weekendLabel);
-        }
+          if (dayNormalized < todayNormalized && dayNormalized.getTime() !== todayNormalized.getTime()) {
+            card.classList.add("past-day");
+          }
 
-        elements.calendar.appendChild(card);
+          const dateEl = document.createElement("div");
+          dateEl.className = "date";
+          dateEl.textContent = day.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" });
+
+          const weekdayEl = document.createElement("div");
+          weekdayEl.className = "weekday";
+          weekdayEl.textContent = weekdays[i];
+
+          card.appendChild(dateEl);
+          card.appendChild(weekdayEl);
+
+          if (!isWeekend) {
+            const storageKey = `time_${day.toISOString().split('T')[0]}`;
+            const savedTime = safeLocalStorageGet(storageKey) || '07:30';
+            
+            if (isEditMode) {
+              const select = document.createElement("select");
+              select.className = "time-select";
+              
+              ["07:30", "12:00", "18:00"].forEach(time => {
+                const option = document.createElement("option");
+                option.value = time;
+                option.textContent = time;
+                if (time === savedTime) option.selected = true;
+                select.appendChild(option);
+              });
+
+              select.addEventListener('change', () => {
+                safeLocalStorageSet(storageKey, select.value);
+                updateCardStyle(card, select.value);
+                updateStats();
+              });
+
+              card.appendChild(select);
+            } else {
+              const timeDisplay = document.createElement("div");
+              timeDisplay.className = "time-display";
+              timeDisplay.textContent = savedTime;
+              card.appendChild(timeDisplay);
+            }
+            updateCardStyle(card, savedTime);
+          } else {
+            const weekendLabel = document.createElement("div");
+            weekendLabel.className = "weekend-label";
+            weekendLabel.textContent = "Выходной";
+            card.appendChild(weekendLabel);
+          }
+
+          elements.calendar.appendChild(card);
+        }
+        updateStats();
+      } catch (e) {
+        console.error('Ошибка рендеринга календаря:', e);
+        elements.calendar.innerHTML = '<div style="text-align: center; color: red;">Ошибка загрузки календаря</div>';
       }
-      updateStats();
     }
 
     // Инициализация
     function init() {
-      currentMonday = setMonday(new Date());
-      checkUrlMode();
-      renderCalendar();
-      
-      elements.prevWeek.addEventListener('click', () => {
-        currentMonday.setDate(currentMonday.getDate() - 7);
+      try {
+        currentMonday = setMonday(new Date());
+        checkUrlMode();
         renderCalendar();
-      });
-      
-      elements.nextWeek.addEventListener('click', () => {
-        currentMonday.setDate(currentMonday.getDate() + 7);
-        renderCalendar();
-      });
+        
+        elements.prevWeek.addEventListener('click', () => {
+          currentMonday.setDate(currentMonday.getDate() - 7);
+          renderCalendar();
+        });
+        
+        elements.nextWeek.addEventListener('click', () => {
+          currentMonday.setDate(currentMonday.getDate() + 7);
+          renderCalendar();
+        });
 
-      updateTime();
-      setInterval(updateTime, 1000);
+        updateTime();
+        setInterval(updateTime, 1000);
+
+        // Перерисовка при изменении ориентации экрана
+        window.addEventListener('resize', renderCalendar);
+        window.addEventListener('orientationchange', () => {
+          setTimeout(renderCalendar, 100);
+        });
+
+      } catch (e) {
+        console.error('Ошибка инициализации:', e);
+      }
     }
 
-    // Запуск приложения
-    init();
+    // Запуск приложения когда DOM готов
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
   </script>
 </body>
 </html>
