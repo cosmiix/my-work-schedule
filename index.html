@@ -40,6 +40,48 @@
       font-size: clamp(1.5em, 4vw, 2em);
     }
     
+    .auth-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    
+    .auth-form {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      text-align: center;
+      width: 90%;
+      max-width: 400px;
+    }
+    
+    .password-input {
+      padding: 12px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 1em;
+      width: 100%;
+      margin: 15px 0;
+    }
+    
+    .auth-button {
+      padding: 12px 25px;
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1em;
+      width: 100%;
+    }
+    
     .week-nav {
       display: flex;
       align-items: center;
@@ -202,11 +244,28 @@
       text-align: center;
       width: 100%;
     }
+    
+    .sync-status {
+      text-align: center;
+      margin: 10px 0;
+      font-size: 0.9em;
+      min-height: 20px;
+    }
 
     #current-time {
       font-size: clamp(0.9em, 3vw, 1.1em);
       margin-bottom: 10px;
       text-align: center;
+    }
+
+    .admin-badge {
+      background: var(--primary-color);
+      color: white;
+      padding: 5px 15px;
+      border-radius: 15px;
+      font-size: 0.8em;
+      margin: 0 auto 10px auto;
+      display: inline-block;
     }
 
     /* Мобильная адаптация */
@@ -258,10 +317,28 @@
   </style>
 </head>
 <body>
+  <!-- Окно авторизации -->
+  <div class="auth-overlay" id="authOverlay" style="display: none;">
+    <div class="auth-form">
+      <h2>🔐 Доступ к редактированию</h2>
+      <p>Введите пароль для изменения графика:</p>
+      <input type="password" class="password-input" id="passwordInput" 
+             placeholder="Пароль редактора" autocomplete="off">
+      <button class="auth-button" onclick="checkPassword()">Войти</button>
+      <p style="margin-top: 15px; color: #666; font-size: 0.9em;">
+        Для просмотра графика закройте это окно
+      </p>
+    </div>
+  </div>
+
   <div class="container">
     <div id="mainContent">
+      <!-- Бейдж редактора -->
+      <div class="admin-badge" id="adminBadge" style="display: none;">🔧 Редактор</div>
+      
       <h1>📅 Мой рабочий график</h1>
       <div id="current-time"></div>
+      <div class="sync-status" id="syncStatus">🔄 Загрузка...</div>
       
       <div class="week-nav">
         <button id="prev-week">← Предыдущая</button>
@@ -273,7 +350,7 @@
       <div class="edit-notice" id="editNotice" style="display: none;">
         <strong>🔧 Вы в режиме редактирования!</strong>
         <p style="margin: 5px 0 0 0; font-size: 0.9em;">
-          Изменения сохраняются автоматически
+          Изменения сохраняются в облаке и сразу видны всем
         </p>
       </div>
       
@@ -299,68 +376,171 @@
     </div>
   </div>
 
+  <!-- Подключаем Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+
   <script>
-    // Улучшенная версия для мобильных устройств
+    // 🔧 КОНФИГУРАЦИЯ FIREBASE
+const firebaseConfig = {
+  apiKey: "AIzaSyCB_bwtspz0GuQeialypinwih1VQ1E30wo",
+  authDomain: "my-schedule-b323f.firebaseapp.com",
+  projectId: "my-schedule-b323f",
+  storageBucket: "my-schedule-b323f.firebasestorage.app",
+  messagingSenderId: "2949606491",
+  appId: "1:2949606491:web:2a0f37da954c0d1267237e"
+};
+
+    // 🔐 ПАРОЛЬ ДЛЯ РЕДАКТИРОВАНИЯ
+    const ADMIN_PASSWORD = "123";
+
+    // Инициализация Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
     const weekdays = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
     let currentMonday = new Date();
     let isEditMode = false;
+    let scheduleData = {};
 
-    // Безопасное получение даты
-    function getSafeDate(date) {
-      try {
-        return new Date(date);
-      } catch (e) {
-        console.error('Ошибка создания даты:', e);
-        return new Date();
-      }
-    }
-
-    // Безопасная работа с localStorage
-    function safeLocalStorageGet(key) {
-      try {
-        return localStorage.getItem(key);
-      } catch (e) {
-        console.error('Ошибка localStorage:', e);
-        return null;
-      }
-    }
-
-    function safeLocalStorageSet(key, value) {
-      try {
-        localStorage.setItem(key, value);
-        return true;
-      } catch (e) {
-        console.error('Ошибка localStorage:', e);
-        return false;
-      }
-    }
-
-    // Определяем режим по URL
-    function checkUrlMode() {
-      try {
-        const urlParams = new URLSearchParams(window.location.search);
-        isEditMode = urlParams.get('mode') === 'edit';
-        
-        if (isEditMode) {
-          document.getElementById('editNotice').style.display = 'block';
-        }
-      } catch (e) {
-        console.error('Ошибка определения режима:', e);
-      }
-    }
-
+    // Элементы DOM
     const elements = {
       calendar: document.getElementById("calendar"),
       weekRange: document.getElementById("week-range"),
       prevWeek: document.getElementById("prev-week"),
-      nextWeek: document.getElementById("next-week")
+      nextWeek: document.getElementById("next-week"),
+      authOverlay: document.getElementById("authOverlay"),
+      passwordInput: document.getElementById("passwordInput"),
+      syncStatus: document.getElementById("syncStatus"),
+      adminBadge: document.getElementById("adminBadge"),
+      editNotice: document.getElementById("editNotice")
     };
 
+    // 🔐 Проверка пароля
+    function checkPassword() {
+      if (elements.passwordInput.value === ADMIN_PASSWORD) {
+        isEditMode = true;
+        elements.authOverlay.style.display = 'none';
+        elements.editNotice.style.display = 'block';
+        elements.adminBadge.style.display = 'block';
+        renderCalendar();
+        updateSyncStatus('✅ Режим редактирования активен', 'green');
+      } else {
+        alert('❌ Неверный пароль');
+      }
+    }
+
+    // Закрытие окна авторизации для просмотра
+    elements.authOverlay.addEventListener('click', (e) => {
+      if (e.target === elements.authOverlay) {
+        isEditMode = false;
+        elements.authOverlay.style.display = 'none';
+        renderCalendar();
+        updateSyncStatus('👁️ Режим просмотра', 'blue');
+      }
+    });
+
+    // Enter для ввода пароля
+    elements.passwordInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') checkPassword();
+    });
+
+    // 📡 Работа с Firebase Firestore
+    async function saveToFirestore(date, time) {
+      try {
+        await db.collection('schedule').doc(date).set({
+          time: time,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+        
+        updateSyncStatus('✅ Сохранено в облаке', 'green');
+        return true;
+      } catch (error) {
+        console.error('Ошибка сохранения:', error);
+        updateSyncStatus('❌ Ошибка сохранения', 'red');
+        
+        // Сохраняем в localStorage как запасной вариант
+        try {
+          scheduleData[date] = time;
+          localStorage.setItem('schedule_backup', JSON.stringify(scheduleData));
+        } catch (e) {
+          console.error('Ошибка локального сохранения:', e);
+        }
+        
+        return false;
+      }
+    }
+
+    async function loadFromFirestore() {
+      try {
+        const snapshot = await db.collection('schedule').get();
+        const data = {};
+        snapshot.forEach(doc => {
+          data[doc.id] = doc.data().time;
+        });
+        scheduleData = data;
+        updateSyncStatus('✅ Данные загружены из облака', 'green');
+        return data;
+      } catch (error) {
+        console.error('Ошибка загрузки из Firestore:', error);
+        // Пробуем загрузить из localStorage
+        return loadFromLocalStorage();
+      }
+    }
+
+    function loadFromLocalStorage() {
+      try {
+        const backup = localStorage.getItem('schedule_backup');
+        if (backup) {
+          scheduleData = JSON.parse(backup);
+          updateSyncStatus('⚠️ Используются локальные данные', 'orange');
+          return scheduleData;
+        }
+      } catch (e) {
+        console.error('Ошибка загрузки локальных данных:', e);
+      }
+      
+      scheduleData = {};
+      return scheduleData;
+    }
+
+    // 🔄 Слушаем изменения в реальном времени
+    function setupRealtimeListener() {
+      db.collection('schedule').onSnapshot((snapshot) => {
+        const changes = snapshot.docChanges();
+        let hasChanges = false;
+        
+        changes.forEach(change => {
+          if (change.type === 'added' || change.type === 'modified') {
+            scheduleData[change.doc.id] = change.doc.data().time;
+            hasChanges = true;
+          } else if (change.type === 'removed') {
+            delete scheduleData[change.doc.id];
+            hasChanges = true;
+          }
+        });
+        
+        if (hasChanges && !isEditMode) {
+          renderCalendar();
+          updateSyncStatus('🔄 Данные обновлены', 'blue');
+        }
+      }, (error) => {
+        console.error('Ошибка real-time listener:', error);
+        updateSyncStatus('⚠️ Оффлайн режим', 'orange');
+      });
+    }
+
+    function updateSyncStatus(message, color) {
+      elements.syncStatus.textContent = message;
+      elements.syncStatus.style.color = color;
+    }
+
+    // 📅 Функции календаря
     function setMonday(date) {
-      const safeDate = getSafeDate(date);
+      const safeDate = new Date(date);
       const monday = new Date(safeDate);
       const day = safeDate.getDay();
-      const diff = safeDate.getDate() - day + (day === 0 ? -6 : 1); // Корректный расчет понедельника
+      const diff = safeDate.getDate() - day + (day === 0 ? -6 : 1);
       monday.setDate(diff);
       return monday;
     }
@@ -381,7 +561,6 @@
         sunday.setDate(monday.getDate() + 6);
         return `${monday.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" })} - ${sunday.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" })}`;
       } catch (e) {
-        console.error('Ошибка форматирования даты:', e);
         return 'Ошибка даты';
       }
     }
@@ -393,6 +572,11 @@
       else if (time === '18:00') card.style.borderLeftColor = '#9C27B0';
     }
 
+    function getTimeForDate(date) {
+      const key = date.toISOString().split('T')[0];
+      return scheduleData[key] || '07:30';
+    }
+
     function findNextWorkday() {
       try {
         const today = new Date();
@@ -402,8 +586,7 @@
           nextDay.setDate(today.getDate() + i);
           const dayOfWeek = nextDay.getDay();
           if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-            const storageKey = `time_${nextDay.toISOString().split('T')[0]}`;
-            const savedTime = safeLocalStorageGet(storageKey) || '07:30';
+            const savedTime = getTimeForDate(nextDay);
             return {
               date: nextDay,
               time: savedTime
@@ -412,7 +595,6 @@
         }
         return null;
       } catch (e) {
-        console.error('Ошибка поиска рабочего дня:', e);
         return null;
       }
     }
@@ -446,14 +628,15 @@
       try {
         elements.calendar.innerHTML = '';
         const today = new Date();
-        today.setHours(0, 0, 0, 0); // Нормализуем дату
+        today.setHours(0, 0, 0, 0);
         
         elements.weekRange.textContent = formatWeekRange(currentMonday);
 
         for (let i = 0; i < 7; i++) {
           const day = new Date(currentMonday);
           day.setDate(currentMonday.getDate() + i);
-          day.setHours(0, 0, 0, 0); // Нормализуем дату
+          day.setHours(0, 0, 0, 0);
+          const dayKey = day.toISOString().split('T')[0];
 
           const card = document.createElement("div");
           card.className = "day-card";
@@ -461,7 +644,6 @@
           const isWeekend = i >= 5;
           if (isWeekend) card.classList.add("weekend");
           
-          // Сравниваем нормализованные даты
           const todayNormalized = new Date(today);
           todayNormalized.setHours(0, 0, 0, 0);
           const dayNormalized = new Date(day);
@@ -486,8 +668,7 @@
           card.appendChild(weekdayEl);
 
           if (!isWeekend) {
-            const storageKey = `time_${day.toISOString().split('T')[0]}`;
-            const savedTime = safeLocalStorageGet(storageKey) || '07:30';
+            const savedTime = getTimeForDate(day);
             
             if (isEditMode) {
               const select = document.createElement("select");
@@ -501,20 +682,21 @@
                 select.appendChild(option);
               });
 
-              select.addEventListener('change', () => {
-                safeLocalStorageSet(storageKey, select.value);
+              select.addEventListener('change', async () => {
+                await saveToFirestore(dayKey, select.value);
                 updateCardStyle(card, select.value);
                 updateStats();
               });
 
               card.appendChild(select);
+              updateCardStyle(card, savedTime);
             } else {
               const timeDisplay = document.createElement("div");
               timeDisplay.className = "time-display";
               timeDisplay.textContent = savedTime;
               card.appendChild(timeDisplay);
+              updateCardStyle(card, savedTime);
             }
-            updateCardStyle(card, savedTime);
           } else {
             const weekendLabel = document.createElement("div");
             weekendLabel.className = "weekend-label";
@@ -527,39 +709,48 @@
         updateStats();
       } catch (e) {
         console.error('Ошибка рендеринга календаря:', e);
-        elements.calendar.innerHTML = '<div style="text-align: center; color: red;">Ошибка загрузки календаря</div>';
+        elements.calendar.innerHTML = '<div style="text-align: center; color: red; padding: 20px;">Ошибка загрузки календаря</div>';
       }
     }
 
-    // Инициализация
-    function init() {
-      try {
-        currentMonday = setMonday(new Date());
-        checkUrlMode();
+    // 🚀 Инициализация
+    async function init() {
+      currentMonday = setMonday(new Date());
+      
+      // Загружаем данные
+      await loadFromFirestore();
+      
+      // Настраиваем real-time listener
+      setupRealtimeListener();
+      
+      // Проверяем режим редактирования по URL
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('mode') === 'edit') {
+        elements.authOverlay.style.display = 'flex';
+      } else {
+        // Режим просмотра
         renderCalendar();
-        
-        elements.prevWeek.addEventListener('click', () => {
-          currentMonday.setDate(currentMonday.getDate() - 7);
-          renderCalendar();
-        });
-        
-        elements.nextWeek.addEventListener('click', () => {
-          currentMonday.setDate(currentMonday.getDate() + 7);
-          renderCalendar();
-        });
-
-        updateTime();
-        setInterval(updateTime, 1000);
-
-        // Перерисовка при изменении ориентации экрана
-        window.addEventListener('resize', renderCalendar);
-        window.addEventListener('orientationchange', () => {
-          setTimeout(renderCalendar, 100);
-        });
-
-      } catch (e) {
-        console.error('Ошибка инициализации:', e);
       }
+      
+      // Навигация по неделям
+      elements.prevWeek.addEventListener('click', () => {
+        currentMonday.setDate(currentMonday.getDate() - 7);
+        renderCalendar();
+      });
+      
+      elements.nextWeek.addEventListener('click', () => {
+        currentMonday.setDate(currentMonday.getDate() + 7);
+        renderCalendar();
+      });
+
+      // Обновление времени
+      updateTime();
+      setInterval(updateTime, 1000);
+
+      // Обработка изменения ориентации экрана
+      window.addEventListener('orientationchange', () => {
+        setTimeout(renderCalendar, 100);
+      });
     }
 
     // Запуск приложения когда DOM готов
